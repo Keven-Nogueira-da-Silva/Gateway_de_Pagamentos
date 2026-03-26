@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # O Banco de Dados que seu application.properties já usa
+  db:
+    image: postgres:15
+    container_name: gateway_db_container
+    environment:
+      POSTGRES_DB: gateway_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Keven#123 # Use a mesma senha do seu print
+    ports:
+      - "5432:5432"
+
+  # O coordenador do Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  # O próprio Kafka (o mensageiro)
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  # Uma tela no navegador para você VER as mensagens
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8081:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
